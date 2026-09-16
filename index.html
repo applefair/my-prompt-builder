@@ -1,0 +1,683 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prompt Builder | AI Assistant</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Noto Sans Thai', 'sans-serif']
+          },
+          colors: {
+            primary: '#6366f1'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background: #f8fafc;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+    }
+
+    .option-card {
+      transition: all 0.2s ease;
+    }
+
+    .option-card:has(input:checked) {
+      border-color: #818cf8;
+      background: #eef2ff;
+    }
+
+    .prompt-result {
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen text-slate-800">
+
+  <!-- Header -->
+  <header class="border-b border-slate-200 bg-white">
+    <div class="mx-auto max-w-7xl px-5 py-5 sm:px-8">
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-600 text-xl text-white shadow-lg shadow-indigo-200">
+            ✨
+          </div>
+
+          <div>
+            <h1 class="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+              Prompt Builder
+            </h1>
+            <p class="text-xs text-slate-500 sm:text-sm">
+              สร้างพรอมป์ให้ AI เข้าใจคุณมากขึ้น
+            </p>
+          </div>
+        </div>
+
+        <span class="hidden rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-600 sm:inline-block">
+          AI Workspace
+        </span>
+      </div>
+    </div>
+  </header>
+
+
+  <!-- Main Content -->
+  <main class="mx-auto max-w-7xl px-5 py-6 sm:px-8 sm:py-10">
+
+    <!-- Progress -->
+    <div class="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="mb-3 flex items-center justify-between">
+        <div>
+          <h2 class="text-sm font-bold text-slate-800">
+            ความสมบูรณ์ของข้อมูล
+          </h2>
+          <p class="mt-1 text-xs text-slate-500">
+            กรอกข้อมูลเพื่อสร้างพรอมป์ที่ตรงกับความต้องการ
+          </p>
+        </div>
+
+        <span id="progressText" class="text-lg font-bold text-indigo-600">
+          0%
+        </span>
+      </div>
+
+      <div class="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
+        <div
+          id="progressBar"
+          class="h-full rounded-full bg-indigo-500 transition-all duration-300"
+          style="width: 0%"
+        ></div>
+      </div>
+
+      <p id="progressHint" class="mt-2 text-xs text-slate-400">
+        เริ่มต้นกรอกข้อมูลกันเลย 🚀
+      </p>
+    </div>
+
+
+    <!-- Two Column Layout -->
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start">
+
+      <!-- LEFT: Form -->
+      <section class="glass-card rounded-3xl border border-slate-200 p-5 shadow-sm sm:p-7">
+
+        <div class="mb-6">
+          <div class="mb-2 flex items-center gap-2">
+            <span class="text-lg">📝</span>
+            <h2 class="text-lg font-bold text-slate-900">
+              ข้อมูลที่ต้องการ
+            </h2>
+          </div>
+
+          <p class="text-sm text-slate-500">
+            เลือกตัวเลือกและกรอกข้อมูลด้านล่าง
+          </p>
+        </div>
+
+
+        <!-- Task -->
+        <div class="mb-6">
+          <label
+            for="task"
+            class="mb-2 block text-sm font-semibold text-slate-700"
+          >
+            1. งานที่อยากให้ AI ช่วย
+            <span class="text-red-500">*</span>
+          </label>
+
+          <textarea
+            id="task"
+            rows="5"
+            placeholder="เช่น ช่วยเขียนคำกล่าวเปิดการอบรมด้านการเงินและพัสดุ ให้มีความทันสมัย กระชับ และเป็นทางการ..."
+            class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-relaxed outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-50"
+          ></textarea>
+
+          <div class="mt-2 flex justify-between text-xs text-slate-400">
+            <span>อธิบายสิ่งที่ต้องการให้ชัดเจน</span>
+            <span id="charCount">0 ตัวอักษร</span>
+          </div>
+        </div>
+
+
+        <!-- Audience -->
+        <div class="mb-6">
+          <label class="mb-3 block text-sm font-semibold text-slate-700">
+            2. คนที่จะใช้แอพ
+            <span class="text-red-500">*</span>
+          </label>
+
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+
+            <label class="option-card flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4">
+              <input
+                type="radio"
+                name="audience"
+                value="บุคคลทั่วไป"
+                class="h-4 w-4 accent-indigo-600"
+              />
+              <div>
+                <p class="text-sm font-semibold">👤 บุคคลทั่วไป</p>
+                <p class="mt-1 text-xs text-slate-400">ผู้ใช้งานทั่วไป</p>
+              </div>
+            </label>
+
+            <label class="option-card flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4">
+              <input
+                type="radio"
+                name="audience"
+                value="บุคลากรองค์กร"
+                class="h-4 w-4 accent-indigo-600"
+              />
+              <div>
+                <p class="text-sm font-semibold">🏢 บุคลากรองค์กร</p>
+                <p class="mt-1 text-xs text-slate-400">หน่วยงานและสำนักงาน</p>
+              </div>
+            </label>
+
+            <label class="option-card flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4">
+              <input
+                type="radio"
+                name="audience"
+                value="นักศึกษา"
+                class="h-4 w-4 accent-indigo-600"
+              />
+              <div>
+                <p class="text-sm font-semibold">🎓 นักศึกษา</p>
+                <p class="mt-1 text-xs text-slate-400">การเรียนและการศึกษา</p>
+              </div>
+            </label>
+
+            <label class="option-card flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4">
+              <input
+                type="radio"
+                name="audience"
+                value="ผู้บริหาร"
+                class="h-4 w-4 accent-indigo-600"
+              />
+              <div>
+                <p class="text-sm font-semibold">💼 ผู้บริหาร</p>
+                <p class="mt-1 text-xs text-slate-400">ผู้บริหารและหัวหน้างาน</p>
+              </div>
+            </label>
+
+          </div>
+        </div>
+
+
+        <!-- Goals -->
+        <div class="mb-6">
+          <label class="mb-3 block text-sm font-semibold text-slate-700">
+            3. เป้าหมายหลัก
+            <span class="text-red-500">*</span>
+          </label>
+
+          <div class="space-y-3">
+
+            <label class="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 transition hover:border-indigo-200">
+              <input
+                type="checkbox"
+                name="goal"
+                value="ให้ข้อมูลถูกต้องและชัดเจน"
+                class="h-4 w-4 rounded accent-indigo-600"
+              />
+              <span class="text-sm">🎯 ให้ข้อมูลถูกต้องและชัดเจน</span>
+            </label>
+
+            <label class="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 transition hover:border-indigo-200">
+              <input
+                type="checkbox"
+                name="goal"
+                value="ประหยัดเวลาและเพิ่มประสิทธิภาพ"
+                class="h-4 w-4 rounded accent-indigo-600"
+              />
+              <span class="text-sm">⚡ ประหยัดเวลาและเพิ่มประสิทธิภาพ</span>
+            </label>
+
+            <label class="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 transition hover:border-indigo-200">
+              <input
+                type="checkbox"
+                name="goal"
+                value="ใช้ภาษาเป็นทางการและเหมาะสม"
+                class="h-4 w-4 rounded accent-indigo-600"
+              />
+              <span class="text-sm">✍️ ใช้ภาษาเป็นทางการและเหมาะสม</span>
+            </label>
+
+            <label class="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 transition hover:border-indigo-200">
+              <input
+                type="checkbox"
+                name="goal"
+                value="สร้างสรรค์และทันสมัย"
+                class="h-4 w-4 rounded accent-indigo-600"
+              />
+              <span class="text-sm">✨ สร้างสรรค์และทันสมัย</span>
+            </label>
+
+          </div>
+        </div>
+
+
+        <!-- Tone -->
+        <div class="mb-6">
+          <label
+            for="tone"
+            class="mb-2 block text-sm font-semibold text-slate-700"
+          >
+            4. รูปแบบภาษา
+          </label>
+
+          <select
+            id="tone"
+            class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-50"
+          >
+            <option value="">เลือกสไตล์ภาษา</option>
+            <option value="เป็นทางการ">เป็นทางการ</option>
+            <option value="กึ่งทางการ">กึ่งทางการ</option>
+            <option value="เป็นกันเอง">เป็นกันเอง</option>
+            <option value="กระชับ ทันสมัย">กระชับ ทันสมัย</option>
+            <option value="สร้างสรรค์และน่าสนใจ">สร้างสรรค์และน่าสนใจ</option>
+          </select>
+        </div>
+
+
+        <!-- Extra Details -->
+        <div class="mb-6">
+          <label
+            for="details"
+            class="mb-2 block text-sm font-semibold text-slate-700"
+          >
+            5. รายละเอียดเพิ่มเติม
+          </label>
+
+          <textarea
+            id="details"
+            rows="3"
+            placeholder="เช่น กลุ่มเป้าหมาย ความยาวของเนื้อหา รูปแบบที่ต้องการ..."
+            class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-relaxed outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-50"
+          ></textarea>
+        </div>
+
+
+        <!-- Reset Button -->
+        <button
+          id="resetBtn"
+          type="button"
+          class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 active:scale-[0.99]"
+        >
+          ↺ ล้างข้อมูลทั้งหมด
+        </button>
+
+      </section>
+
+
+      <!-- RIGHT: Result -->
+      <section class="glass-card rounded-3xl border border-slate-200 p-5 shadow-sm sm:p-7 lg:sticky lg:top-6">
+
+        <div class="mb-5 flex items-start justify-between gap-3">
+          <div>
+            <div class="mb-2 flex items-center gap-2">
+              <span class="text-lg">✨</span>
+              <h2 class="text-lg font-bold text-slate-900">
+                Prompt Result
+              </h2>
+            </div>
+
+            <p class="text-sm text-slate-500">
+              พรอมป์ของคุณจะอัปเดตแบบ Real-time
+            </p>
+          </div>
+
+          <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">
+            Live
+          </span>
+        </div>
+
+
+        <!-- Result Box -->
+        <div class="relative overflow-hidden rounded-2xl border border-indigo-100 bg-slate-50">
+
+          <div class="flex items-center justify-between border-b border-indigo-100 bg-indigo-50/60 px-4 py-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">
+              Generated Prompt
+            </span>
+
+            <span class="text-xs text-slate-400">
+              AI Ready
+            </span>
+          </div>
+
+          <div
+            id="promptResult"
+            class="prompt-result min-h-[350px] max-h-[600px] overflow-y-auto p-5 text-sm leading-7 text-slate-600"
+          >เริ่มกรอกข้อมูลทางด้านซ้าย เพื่อสร้างพรอมป์ของคุณ...</div>
+
+        </div>
+
+
+        <!-- Copy Button -->
+        <button
+          id="copyBtn"
+          type="button"
+          class="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-700 active:scale-[0.99]"
+        >
+          <span>📋</span>
+          <span id="copyText">คัดลอกพรอมป์</span>
+        </button>
+
+        <p class="mt-3 text-center text-xs text-slate-400">
+          คัดลอกแล้วนำไปใช้กับ ChatGPT, Gemini หรือ AI อื่น ๆ ได้เลย
+        </p>
+
+
+        <!-- Quick Tips -->
+        <div class="mt-6 rounded-2xl border border-amber-100 bg-amber-50/60 p-4">
+          <div class="mb-2 flex items-center gap-2">
+            <span>💡</span>
+            <span class="text-sm font-bold text-amber-800">
+              Tips
+            </span>
+          </div>
+
+          <p class="text-xs leading-6 text-amber-700">
+            ระบุงาน เป้าหมาย และบริบทให้ชัดเจน เพื่อช่วยให้ AI สร้างคำตอบที่ตรงกับความต้องการมากขึ้น
+          </p>
+        </div>
+
+      </section>
+
+    </div>
+
+
+    <!-- Footer -->
+    <footer class="mt-8 text-center text-xs text-slate-400">
+      Prompt Builder • Designed for productivity ✨
+    </footer>
+
+  </main>
+
+
+  <!-- JavaScript -->
+  <script>
+
+    // ==========================================
+    // DOM Elements
+    // ==========================================
+
+    const taskInput = document.getElementById('task');
+    const detailsInput = document.getElementById('details');
+    const toneInput = document.getElementById('tone');
+
+    const promptResult = document.getElementById('promptResult');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const progressHint = document.getElementById('progressHint');
+    const charCount = document.getElementById('charCount');
+
+    const copyBtn = document.getElementById('copyBtn');
+    const copyText = document.getElementById('copyText');
+    const resetBtn = document.getElementById('resetBtn');
+
+
+    // ==========================================
+    // Get Selected Values
+    // ==========================================
+
+    function getAudience() {
+      const selected = document.querySelector(
+        'input[name="audience"]:checked'
+      );
+
+      return selected ? selected.value : '';
+    }
+
+    function getGoals() {
+      return Array.from(
+        document.querySelectorAll('input[name="goal"]:checked')
+      ).map(input => input.value);
+    }
+
+
+    // ==========================================
+    // Calculate Progress
+    // ==========================================
+
+    function updateProgress() {
+
+      const task = taskInput.value.trim();
+      const audience = getAudience();
+      const goals = getGoals();
+      const tone = toneInput.value;
+      const details = detailsInput.value.trim();
+
+      // Required fields
+      const requiredFields = [
+        task.length > 0,
+        audience !== '',
+        goals.length > 0
+      ];
+
+      const completed = requiredFields.filter(Boolean).length;
+
+      // Optional fields add partial progress
+      let progress = (completed / requiredFields.length) * 80;
+
+      if (tone !== '') {
+        progress += 10;
+      }
+
+      if (details !== '') {
+        progress += 10;
+      }
+
+      progress = Math.round(Math.min(progress, 100));
+
+      progressBar.style.width = `${progress}%`;
+      progressText.textContent = `${progress}%`;
+
+      if (progress === 0) {
+        progressHint.textContent = 'เริ่มต้นกรอกข้อมูลกันเลย 🚀';
+      } else if (progress < 80) {
+        progressHint.textContent = 'กรอกข้อมูลเพิ่มเติมเพื่อสร้างพรอมป์ที่ดีขึ้น';
+      } else if (progress < 100) {
+        progressHint.textContent = 'ใกล้เสร็จแล้ว! เพิ่มรายละเอียดได้อีกนิด';
+      } else {
+        progressHint.textContent = 'ข้อมูลครบถ้วนแล้ว พร้อมใช้งาน! 🎉';
+      }
+    }
+
+
+    // ==========================================
+    // Generate Prompt
+    // ==========================================
+
+    function generatePrompt() {
+
+      const task = taskInput.value.trim();
+      const audience = getAudience();
+      const goals = getGoals();
+      const tone = toneInput.value;
+      const details = detailsInput.value.trim();
+
+      // Update character count
+      charCount.textContent = `${taskInput.value.length} ตัวอักษร`;
+
+      // Update progress
+      updateProgress();
+
+      // Empty state
+      if (!task && !audience && goals.length === 0 && !tone && !details) {
+        promptResult.textContent =
+          'เริ่มกรอกข้อมูลทางด้านซ้าย เพื่อสร้างพรอมป์ของคุณ...';
+        return;
+      }
+
+      // Build prompt
+      let prompt = `คุณคือผู้ช่วย AI ที่มีความเชี่ยวชาญ\n\n`;
+
+      prompt += `## งานที่ต้องการให้ช่วย\n`;
+      prompt += `${task || 'โปรดสอบถามรายละเอียดงานที่ต้องการ'}\n\n`;
+
+      prompt += `## ผู้ใช้งาน\n`;
+      prompt += `${audience || 'ยังไม่ได้ระบุ'}\n\n`;
+
+      prompt += `## เป้าหมายหลัก\n`;
+
+      if (goals.length > 0) {
+        goals.forEach((goal, index) => {
+          prompt += `${index + 1}. ${goal}\n`;
+        });
+      } else {
+        prompt += `ยังไม่ได้ระบุเป้าหมาย\n`;
+      }
+
+      prompt += `\n`;
+
+      prompt += `## รูปแบบภาษา\n`;
+      prompt += `${tone || 'เหมาะสมกับบริบทของงาน'}\n\n`;
+
+      prompt += `## รายละเอียดเพิ่มเติม\n`;
+      prompt += `${details || 'ไม่มีรายละเอียดเพิ่มเติม'}\n\n`;
+
+      prompt += `## คำแนะนำในการตอบ\n`;
+      prompt += `1. วิเคราะห์ความต้องการของผู้ใช้อย่างละเอียด\n`;
+      prompt += `2. ให้คำตอบที่ถูกต้อง ชัดเจน และเป็นประโยชน์\n`;
+      prompt += `3. ใช้ภาษาที่เหมาะสมกับกลุ่มเป้าหมาย\n`;
+      prompt += `4. จัดรูปแบบเนื้อหาให้อ่านง่าย\n`;
+      prompt += `5. หากข้อมูลไม่เพียงพอ ให้สอบถามเพิ่มเติมอย่างเหมาะสม\n`;
+
+      promptResult.textContent = prompt;
+    }
+
+
+    // ==========================================
+    // Real-time Event Listeners
+    // ==========================================
+
+    const allInputs = document.querySelectorAll(
+      'input, textarea, select'
+    );
+
+    allInputs.forEach(input => {
+      input.addEventListener('input', generatePrompt);
+      input.addEventListener('change', generatePrompt);
+    });
+
+
+    // ==========================================
+    // Copy Prompt
+    // ==========================================
+
+    copyBtn.addEventListener('click', async () => {
+
+      const text = promptResult.textContent;
+
+      if (!text || text.includes('เริ่มกรอกข้อมูลทางด้านซ้าย')) {
+        alert('กรุณากรอกข้อมูลเพื่อสร้างพรอมป์ก่อนค่ะ');
+        return;
+      }
+
+      try {
+
+        await navigator.clipboard.writeText(text);
+
+        copyText.textContent = '✓ คัดลอกสำเร็จแล้ว!';
+        copyBtn.classList.remove('bg-indigo-600');
+        copyBtn.classList.add('bg-emerald-600');
+
+        setTimeout(() => {
+          copyText.textContent = 'คัดลอกพรอมป์';
+          copyBtn.classList.remove('bg-emerald-600');
+          copyBtn.classList.add('bg-indigo-600');
+        }, 2000);
+
+      } catch (error) {
+
+        // Fallback สำหรับเบราว์เซอร์ที่ไม่รองรับ Clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+          document.execCommand('copy');
+
+          copyText.textContent = '✓ คัดลอกสำเร็จแล้ว!';
+
+          setTimeout(() => {
+            copyText.textContent = 'คัดลอกพรอมป์';
+          }, 2000);
+
+        } catch (fallbackError) {
+          alert('ไม่สามารถคัดลอกได้ กรุณาคัดลอกข้อความด้วยตนเองค่ะ');
+        }
+
+        document.body.removeChild(textArea);
+      }
+
+    });
+
+
+    // ==========================================
+    // Reset Form
+    // ==========================================
+
+    resetBtn.addEventListener('click', () => {
+
+      const confirmed = confirm('ต้องการล้างข้อมูลทั้งหมดใช่ไหมคะ?');
+
+      if (!confirmed) return;
+
+      taskInput.value = '';
+      detailsInput.value = '';
+      toneInput.value = '';
+
+      document.querySelectorAll(
+        'input[type="radio"], input[type="checkbox"]'
+      ).forEach(input => {
+        input.checked = false;
+      });
+
+      generatePrompt();
+
+      copyText.textContent = 'คัดลอกพรอมป์';
+
+    });
+
+
+    // ==========================================
+    // Initialize
+    // ==========================================
+
+    generatePrompt();
+
+  </script>
+
+</body>
+</html>
